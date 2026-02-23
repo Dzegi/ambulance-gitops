@@ -1,0 +1,1578 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    app.kubernetes.io/created-by: polyfea-controller
+    app.kubernetes.io/instance: polyfea
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: namespace
+    app.kubernetes.io/part-of: polyfea-controller
+  name: polyfea
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.18.0
+  name: microfrontendclasses.polyfea.github.io
+spec:
+  group: polyfea.github.io
+  names:
+    kind: MicroFrontendClass
+    listKind: MicroFrontendClassList
+    plural: microfrontendclasses
+    singular: microfrontendclass
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: MicroFrontendClass is the Schema for the microfrontendclasses
+          API
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: MicroFrontendClassSpec defines the desired state of MicroFrontendClass
+            properties:
+              baseUri:
+                description: BaseUri for which the frontend class will be used
+                type: string
+              cspHeader:
+                default: default-src 'self'; font-src 'self'; script-src 'strict-dynamic'
+                  'nonce-{NONCE_VALUE}'; worker-src 'self'; manifest-src 'self'; style-src
+                  'self' 'unsafe-inline'; style-src-attr 'self' 'unsafe-inline'; img-src
+                  *; connect-src *;
+                description: CspHeader that will be used for the frontend class, a
+                  default will be used if not set.
+                type: string
+              extraHeaders:
+                description: ExtraHeaders that will be used for the frontend class,
+                  none if not set.
+                items:
+                  description: Header defines the header of the frontend class
+                  properties:
+                    name:
+                      description: Name of the header
+                      type: string
+                    value:
+                      description: Value of the header
+                      type: string
+                  required:
+                  - name
+                  - value
+                  type: object
+                type: array
+              extraMetaTags:
+                description: ExtraMetaTags that will be used for the frontend class,
+                  none if not set.
+                items:
+                  description: MetaTag defines the meta tag of the frontend class
+                  properties:
+                    content:
+                      description: Content of the meta tag
+                      type: string
+                    name:
+                      description: Name of the meta tag
+                      type: string
+                  required:
+                  - content
+                  - name
+                  type: object
+                type: array
+              namespacePolicy:
+                default:
+                  from: All
+                description: |-
+                  NamespacePolicy defines which namespaces can attach MicroFrontends to this class
+                  Defaults to allowing all namespaces
+                properties:
+                  from:
+                    allOf:
+                    - enum:
+                      - All
+                      - Same
+                      - FromNamespaces
+                    - enum:
+                      - All
+                      - Same
+                      - FromNamespaces
+                    default: All
+                    description: From defines namespace selection behavior
+                    type: string
+                  namespaces:
+                    description: |-
+                      Namespaces is a list of namespaces from which MicroFrontends can be attached
+                      Only used when From is "FromNamespaces"
+                    items:
+                      type: string
+                    type: array
+                required:
+                - from
+                type: object
+              progressiveWebApp:
+                description: |-
+                  ProgressiveWebApp defines the configuration settings for a Progressive Web Application (PWA).
+                  It includes specifications for the web app manifest and cache options, which are crucial for the PWA's functionality and performance.
+                  This field is optional and can be omitted if not needed.
+                properties:
+                  cacheOptions:
+                    description: CacheOptions specifies the cache settings for the
+                      PWA, including pre-caching and runtime caching.
+                    properties:
+                      cacheRoutes:
+                        description: CacheRoutes specifies the caching strategies
+                          for different URL patterns.
+                        items:
+                          description: |-
+                            CacheRoute defines the caching strategy for a specific URL pattern within a Progressive Web Application (PWA).
+                            This struct allows for fine-tuned control over how different network requests are handled, enhancing performance, reliability, and offline capabilities based on the application's requirements.
+                          properties:
+                            destination:
+                              description: |-
+                                Destination is the optional destination URL for this caching strategy.
+                                You can find the list of possible values here: https://developer.mozilla.org/en-US/docs/Web/API/Request/destination
+                              type: string
+                            maxAgeSeconds:
+                              description: MaxAgeSeconds specifies the maximum age
+                                (in seconds) for cached content.
+                              format: int32
+                              type: integer
+                            method:
+                              default: GET
+                              description: Method specifies the HTTP method to be
+                                used with this caching strategy. It defaults to "GET".
+                              enum:
+                              - DELETE
+                              - GET
+                              - HEAD
+                              - PATCH
+                              - POST
+                              - PUT
+                              type: string
+                            pattern:
+                              description: Pattern is the URL pattern to which this
+                                caching strategy applies.
+                              type: string
+                            statuses:
+                              default:
+                              - 0
+                              - 200
+                              - 201
+                              - 202
+                              - 204
+                              description: Statuses lists the HTTP status codes to
+                                be cached. It defaults to [0, 200, 201, 202, 204].
+                              items:
+                                format: int32
+                                type: integer
+                              type: array
+                            strategy:
+                              default: cache-first
+                              description: Strategy defines the caching strategy to
+                                be used for this URL pattern. It defaults to "cache-first".
+                              enum:
+                              - cache-first
+                              - network-first
+                              - cache-only
+                              - network-only
+                              - stale-while-revalidate
+                              type: string
+                            syncRetentionMinutes:
+                              description: SyncRetentionMinutes specifies the duration
+                                (in minutes) to retain synced content in the cache.
+                              format: int32
+                              type: integer
+                          required:
+                          - pattern
+                          type: object
+                        type: array
+                      preCache:
+                        description: PreCache lists the URLs or resources to be pre-cached
+                          when the PWA is installed.
+                        items:
+                          description: |-
+                            PreCacheEntry represents an individual entry in the pre-cache list for a Progressive Web Application (PWA).
+                            Each entry specifies a URL to be cached and an optional revision identifier to manage cache updates and invalidation.
+                          properties:
+                            revision:
+                              description: |-
+                                Revision is an optional field that specifies a revision identifier for the resource.
+                                The revision helps in cache management by allowing the service worker to recognize and update cached assets when their content changes. This ensures users always have access to the most up-to-date resources.
+                              type: string
+                            url:
+                              description: |-
+                                URL specifies the resource URL that should be pre-cached. This URL points to the asset that needs to be available offline, ensuring it is cached during the installation of the PWA.
+                                URL needs to be relative to the base URL of the frontend class.
+                              type: string
+                          required:
+                          - url
+                          type: object
+                        type: array
+                    type: object
+                  polyfeaSWReconcileInterval:
+                    default: 1800000
+                    description: Time for reconciliation of the strategies from the
+                      frontend side.
+                    format: int32
+                    type: integer
+                  webAppManifest:
+                    description: WebAppManifest represents the web app manifest file
+                      for the PWA.
+                    properties:
+                      display:
+                        description: 'Read more here: https://developer.mozilla.org/en-US/docs/Web/Manifest/display'
+                        type: string
+                      display_override:
+                        description: 'Read more here: https://developer.mozilla.org/en-US/docs/Web/Manifest/display_override'
+                        items:
+                          type: string
+                        type: array
+                      icons:
+                        description: 'Read more here: https://developer.mozilla.org/en-US/docs/Web/Manifest/icons'
+                        items:
+                          description: 'Read more here: https://developer.mozilla.org/en-US/docs/Web/Manifest/icons'
+                          properties:
+                            purpose:
+                              description: "Defines the purpose of the image, for
+                                example if the image is intended to serve some special
+                                purpose in the context of the host OS (i.e., for better
+                                integration).\npurpose can have one or more of the
+                                following values, separated by spaces:\n\tmonochrome:
+                                A user agent can present this icon where a monochrome
+                                icon with a solid fill is needed. The color information
+                                in the icon is discarded and only the alpha data is
+                                used. The icon can then be used by the user agent
+                                like a mask over any solid fill.\n\tmaskable: The
+                                image is designed with icon masks and safe zone in
+                                mind, such that any part of the image outside the
+                                safe zone can safely be ignored and masked away by
+                                the user agent.\n\tany: The user agent is free to
+                                display the icon in any context (this is the default
+                                value)."
+                              enum:
+                              - monochrome
+                              - maskable
+                              - any
+                              type: string
+                            sizes:
+                              description: A string containing space-separated image
+                                dimensions using the same syntax as the sizes attribute.
+                              type: string
+                            src:
+                              description: The path to the image file. If src is a
+                                relative URL, the base URL will be the URL of the
+                                manifest.
+                              type: string
+                            type:
+                              description: A hint as to the media type of the image.
+                                The purpose of this member is to allow a user agent
+                                to quickly ignore images with media types it does
+                                not support.
+                              type: string
+                          required:
+                          - sizes
+                          - src
+                          - type
+                          type: object
+                        type: array
+                      name:
+                        description: 'Read more here: https://developer.mozilla.org/en-US/docs/Web/Manifest/name'
+                        type: string
+                      start_url:
+                        description: |-
+                          Read more here: https://developer.mozilla.org/en-US/docs/Web/Manifest/start_url
+                          URL needs to be relative to the base URL of the frontend class.
+                        type: string
+                    required:
+                    - display
+                    - icons
+                    - name
+                    - start_url
+                    type: object
+                required:
+                - webAppManifest
+                type: object
+              rolesHeader:
+                default: x-auth-request-roles
+                description: UserRolesHeader is the name of the header that contains
+                  the roles of the user. Defaults to 'x-auth-request-roles'.
+                type: string
+              title:
+                description: Title that will be used for the frontend class.
+                type: string
+              userHeader:
+                default: x-auth-request-user
+                description: UserHeader is the name of the header that contains the
+                  user id. Defaults to 'x-auth-request-user'.
+                type: string
+            required:
+            - baseUri
+            - title
+            type: object
+          status:
+            description: MicroFrontendClassStatus defines the observed state of MicroFrontendClass
+            properties:
+              acceptedMicroFrontends:
+                description: AcceptedMicroFrontends counts how many MicroFrontends
+                  are currently bound to this class
+                format: int32
+                type: integer
+              conditions:
+                description: Conditions represent the latest available observations
+                  of the MicroFrontendClass's state
+                items:
+                  description: Condition contains details for one aspect of the current
+                    state of this API Resource.
+                  properties:
+                    lastTransitionTime:
+                      description: |-
+                        lastTransitionTime is the last time the condition transitioned from one status to another.
+                        This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        message is a human readable message indicating details about the transition.
+                        This may be an empty string.
+                      maxLength: 32768
+                      type: string
+                    observedGeneration:
+                      description: |-
+                        observedGeneration represents the .metadata.generation that the condition was set based upon.
+                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                        with respect to the current state of the instance.
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      description: |-
+                        reason contains a programmatic identifier indicating the reason for the condition's last transition.
+                        Producers of specific condition types may define expected values and meanings for this field,
+                        and whether the values are considered a guaranteed API.
+                        The value should be a CamelCase string.
+                        This field may not be empty.
+                      maxLength: 1024
+                      minLength: 1
+                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                      type: string
+                    status:
+                      description: status of the condition, one of True, False, Unknown.
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - type
+                x-kubernetes-list-type: map
+              observedGeneration:
+                description: ObservedGeneration reflects the generation of the most
+                  recently observed MicroFrontendClass
+                format: int64
+                type: integer
+              phase:
+                description: |-
+                  Phase represents the current lifecycle phase of the MicroFrontendClass
+                  Possible values: Ready, Invalid
+                enum:
+                - Ready
+                - Invalid
+                type: string
+              rejectedMicroFrontends:
+                description: RejectedMicroFrontends counts how many MicroFrontends
+                  were rejected by namespace policy
+                format: int32
+                type: integer
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.18.0
+  name: microfrontends.polyfea.github.io
+spec:
+  group: polyfea.github.io
+  names:
+    kind: MicroFrontend
+    listKind: MicroFrontendList
+    plural: microfrontends
+    singular: microfrontend
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: MicroFrontend is the Schema for the microfrontends API
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: MicroFrontendSpec defines the desired state of MicroFrontend
+            properties:
+              cacheControl:
+                description: CacheControl defines the cache control header for the
+                  micro frontend. This is only used if the caching strategy is set
+                  to 'cache'.
+                type: string
+              cacheOptions:
+                description: CacheOptions specifies the cache settings for the PWA,
+                  including pre-caching and runtime caching.
+                properties:
+                  cacheRoutes:
+                    description: CacheRoutes specifies the caching strategies for
+                      different URL patterns.
+                    items:
+                      description: |-
+                        CacheRoute defines the caching strategy for a specific URL pattern within a Progressive Web Application (PWA).
+                        This struct allows for fine-tuned control over how different network requests are handled, enhancing performance, reliability, and offline capabilities based on the application's requirements.
+                      properties:
+                        destination:
+                          description: |-
+                            Destination is the optional destination URL for this caching strategy.
+                            You can find the list of possible values here: https://developer.mozilla.org/en-US/docs/Web/API/Request/destination
+                          type: string
+                        maxAgeSeconds:
+                          description: MaxAgeSeconds specifies the maximum age (in
+                            seconds) for cached content.
+                          format: int32
+                          type: integer
+                        method:
+                          default: GET
+                          description: Method specifies the HTTP method to be used
+                            with this caching strategy. It defaults to "GET".
+                          enum:
+                          - DELETE
+                          - GET
+                          - HEAD
+                          - PATCH
+                          - POST
+                          - PUT
+                          type: string
+                        pattern:
+                          description: Pattern is the URL pattern to which this caching
+                            strategy applies.
+                          type: string
+                        statuses:
+                          default:
+                          - 0
+                          - 200
+                          - 201
+                          - 202
+                          - 204
+                          description: Statuses lists the HTTP status codes to be
+                            cached. It defaults to [0, 200, 201, 202, 204].
+                          items:
+                            format: int32
+                            type: integer
+                          type: array
+                        strategy:
+                          default: cache-first
+                          description: Strategy defines the caching strategy to be
+                            used for this URL pattern. It defaults to "cache-first".
+                          enum:
+                          - cache-first
+                          - network-first
+                          - cache-only
+                          - network-only
+                          - stale-while-revalidate
+                          type: string
+                        syncRetentionMinutes:
+                          description: SyncRetentionMinutes specifies the duration
+                            (in minutes) to retain synced content in the cache.
+                          format: int32
+                          type: integer
+                      required:
+                      - pattern
+                      type: object
+                    type: array
+                  preCache:
+                    description: PreCache lists the URLs or resources to be pre-cached
+                      when the PWA is installed.
+                    items:
+                      description: |-
+                        PreCacheEntry represents an individual entry in the pre-cache list for a Progressive Web Application (PWA).
+                        Each entry specifies a URL to be cached and an optional revision identifier to manage cache updates and invalidation.
+                      properties:
+                        revision:
+                          description: |-
+                            Revision is an optional field that specifies a revision identifier for the resource.
+                            The revision helps in cache management by allowing the service worker to recognize and update cached assets when their content changes. This ensures users always have access to the most up-to-date resources.
+                          type: string
+                        url:
+                          description: |-
+                            URL specifies the resource URL that should be pre-cached. This URL points to the asset that needs to be available offline, ensuring it is cached during the installation of the PWA.
+                            URL needs to be relative to the base URL of the frontend class.
+                          type: string
+                      required:
+                      - url
+                      type: object
+                    type: array
+                type: object
+              cacheStrategy:
+                default: none
+                description: CachingStrategy defines the caching strategy for the
+                  micro frontend.
+                enum:
+                - none
+                - cache
+                type: string
+              dependsOn:
+                description: List of dependencies that should be loaded before this
+                  micro frontend.
+                items:
+                  type: string
+                type: array
+              frontendClass:
+                default: polyfea-controller-default
+                description: FrontendClass is the name of the frontend class that
+                  should be used for this micro frontend.
+                type: string
+              importMap:
+                description: |-
+                  ImportMap defines module specifier mappings for this microfrontend.
+                  These entries are merged at the MicroFrontendClass level. In case of conflicts between
+                  microfrontends, first-registered wins (based on creation timestamp).
+                properties:
+                  imports:
+                    additionalProperties:
+                      type: string
+                    description: |-
+                      Imports maps bare module specifiers to paths (relative to this microfrontend's service)
+                      or absolute URLs.
+                      Example: {"angular": "./bundle/angular.mjs", "react": "https://cdn.example.com/react.js"}
+                    type: object
+                  scopes:
+                    additionalProperties:
+                      additionalProperties:
+                        type: string
+                      type: object
+                    description: |-
+                      Scopes allows different module resolutions based on the referrer URL path.
+                      Keys are URL path prefixes, values are import maps that apply within that scope.
+                      Example: {"/legacy/": {"angular": "./old-angular.mjs"}}
+                    type: object
+                type: object
+              modulePath:
+                description: Relative path to the module file within the service.
+                type: string
+              proxy:
+                default: true
+                description: This specifies whether the loading of web components
+                  should be proxied by the controller.
+                type: boolean
+              service:
+                description: Reference to a service from which the modules or css
+                  would be served.
+                properties:
+                  domain:
+                    default: svc.cluster.local
+                    description: |-
+                      Domain is the cluster domain suffix. Defaults to svc.cluster.local if not specified.
+                      Only used when Name is set. Allows customization for different cluster implementations.
+                    type: string
+                  name:
+                    description: Name of the Kubernetes service (mutually exclusive
+                      with URI)
+                    type: string
+                  namespace:
+                    description: |-
+                      Namespace of the service. Defaults to the MicroFrontend's namespace if not specified.
+                      Only used when Name is set.
+                    type: string
+                  port:
+                    default: 80
+                    description: |-
+                      Port of the service. Defaults to 80 if not specified.
+                      Only used when Name is set.
+                    format: int32
+                    type: integer
+                  scheme:
+                    default: http
+                    description: |-
+                      Scheme to use for connection (http or https). Defaults to http.
+                      Only used when Name is set.
+                    enum:
+                    - http
+                    - https
+                    type: string
+                  uri:
+                    description: |-
+                      URI for external services (mutually exclusive with Name)
+                      Should include schema (http:// or https://)
+                    type: string
+                type: object
+                x-kubernetes-validations:
+                - message: Either 'name' or 'uri' must be specified, but not both
+                  rule: (has(self.name) && size(self.name) > 0) != (has(self.uri)
+                    && size(self.uri) > 0)
+              staticPaths:
+                description: Relative path to the static files within the service.
+                items:
+                  description: StaticResources defines the static resources that should
+                    be loaded before this micro frontend.
+                  properties:
+                    attributes:
+                      items:
+                        description: Attribute defines a key-value pair that allows
+                          you to assign specific attributes to the element. The name
+                          field is used as the attribute name, while the value field
+                          can be any valid JSON type.
+                        properties:
+                          name:
+                            description: The name of the attribute.
+                            type: string
+                          value:
+                            description: The value of the attribute.
+                            x-kubernetes-preserve-unknown-fields: true
+                        required:
+                        - name
+                        - value
+                        type: object
+                      type: array
+                    kind:
+                      description: Kind defines the kind of the static resource can
+                        be script, stylesheet, or any other `link` element.
+                      type: string
+                    path:
+                      type: string
+                    proxy:
+                      default: true
+                      description: This specifies whether the loading of static resource
+                        components should be proxied by the controller.
+                      type: boolean
+                    waitOnLoad:
+                      description: WaitOnLoad defines whether the micro frontend should
+                        wait for the static resource to load before loading itself.
+                      type: boolean
+                  required:
+                  - kind
+                  - path
+                  type: object
+                type: array
+            required:
+            - frontendClass
+            - modulePath
+            - service
+            type: object
+          status:
+            description: MicroFrontendStatus defines the observed state of MicroFrontend
+            properties:
+              conditions:
+                description: Conditions represent the latest available observations
+                  of the MicroFrontend's state
+                items:
+                  description: Condition contains details for one aspect of the current
+                    state of this API Resource.
+                  properties:
+                    lastTransitionTime:
+                      description: |-
+                        lastTransitionTime is the last time the condition transitioned from one status to another.
+                        This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        message is a human readable message indicating details about the transition.
+                        This may be an empty string.
+                      maxLength: 32768
+                      type: string
+                    observedGeneration:
+                      description: |-
+                        observedGeneration represents the .metadata.generation that the condition was set based upon.
+                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                        with respect to the current state of the instance.
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      description: |-
+                        reason contains a programmatic identifier indicating the reason for the condition's last transition.
+                        Producers of specific condition types may define expected values and meanings for this field,
+                        and whether the values are considered a guaranteed API.
+                        The value should be a CamelCase string.
+                        This field may not be empty.
+                      maxLength: 1024
+                      minLength: 1
+                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                      type: string
+                    status:
+                      description: status of the condition, one of True, False, Unknown.
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - type
+                x-kubernetes-list-type: map
+              frontendClassRef:
+                description: FrontendClassRef indicates which MicroFrontendClass this
+                  microfrontend is bound to
+                properties:
+                  accepted:
+                    description: Accepted indicates if this MicroFrontend is accepted
+                      by the class's namespace policy
+                    type: boolean
+                  name:
+                    description: Name of the MicroFrontendClass
+                    type: string
+                  namespace:
+                    description: Namespace of the MicroFrontendClass
+                    type: string
+                required:
+                - accepted
+                - name
+                type: object
+              importMapConflicts:
+                description: |-
+                  ImportMapConflicts lists module specifiers that couldn't be registered
+                  due to conflicts with other microfrontends (first-registered wins)
+                items:
+                  description: ImportMapConflict describes a module specifier conflict
+                    in the import map
+                  properties:
+                    registeredBy:
+                      description: RegisteredBy indicates which microfrontend registered
+                        it first (namespace/name)
+                      type: string
+                    registeredPath:
+                      description: RegisteredPath is what's actually registered (from
+                        another microfrontend)
+                      type: string
+                    requestedPath:
+                      description: RequestedPath is what this microfrontend requested
+                      type: string
+                    scope:
+                      description: Scope is the scope path where the conflict occurred
+                        (empty string for top-level imports)
+                      type: string
+                    specifier:
+                      description: Specifier is the module name that has a conflict
+                      type: string
+                  required:
+                  - registeredBy
+                  - registeredPath
+                  - requestedPath
+                  - specifier
+                  type: object
+                type: array
+              observedGeneration:
+                description: ObservedGeneration reflects the generation of the most
+                  recently observed MicroFrontend
+                format: int64
+                type: integer
+              phase:
+                description: |-
+                  Phase represents the current lifecycle phase of the MicroFrontend
+                  Possible values: Pending, Ready, Failed, Rejected
+                enum:
+                - Pending
+                - Ready
+                - Failed
+                - Rejected
+                type: string
+              rejectionReason:
+                description: RejectionReason explains why the microfrontend was rejected
+                  (namespace policy violation, etc.)
+                type: string
+              resolvedServiceURL:
+                description: ResolvedServiceURL is the computed URL where the microfrontend
+                  is served from
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.18.0
+  name: webcomponents.polyfea.github.io
+spec:
+  group: polyfea.github.io
+  names:
+    kind: WebComponent
+    listKind: WebComponentList
+    plural: webcomponents
+    singular: webcomponent
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: WebComponent is the Schema for the webcomponents API
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: WebComponentSpec defines the desired state of WebComponent
+            properties:
+              attributes:
+                description: This is a list of key-value pairs that allows you to
+                  assign specific attributes to the element. The name field is used
+                  as the attribute name, while the value field can be any valid JSON
+                  type.
+                items:
+                  description: Attribute defines a key-value pair that allows you
+                    to assign specific attributes to the element. The name field is
+                    used as the attribute name, while the value field can be any valid
+                    JSON type.
+                  properties:
+                    name:
+                      description: The name of the attribute.
+                      type: string
+                    value:
+                      description: The value of the attribute.
+                      x-kubernetes-preserve-unknown-fields: true
+                  required:
+                  - name
+                  - value
+                  type: object
+                type: array
+              displayRules:
+                description: |-
+                  DisplayRules defines the conditions under which the web component should be loaded.
+                  There is an or opperation between the elements of the DisplayRules list. If any of the DisplayRules is matched, the web component will be loaded.
+                items:
+                  description: |-
+                    DisplayRules defines the conditions under which the web component should be loaded.
+                    There is an and opperation between AllOf, AnyOf and NoneOf lists.
+                  properties:
+                    allOf:
+                      description: If all of the matchers in this list are matched,
+                        the web component will be loaded.
+                      items:
+                        description: Matcher defines the conditions under which the
+                          web component should be loaded.
+                        maxProperties: 1
+                        properties:
+                          context-name:
+                            description: This is a list of context names in which
+                              this element is intended to be shown.
+                            type: string
+                          path:
+                            description: The list of paths in which this element is
+                              intended to be shown.
+                            example: /my-menu-item
+                            type: string
+                          role:
+                            description: The list of roles for which this element
+                              is intended to be shown.
+                            example: admin
+                            type: string
+                        type: object
+                      type: array
+                    anyOf:
+                      description: If any of the matchers in this list are matched,
+                        the web component will be loaded.
+                      items:
+                        description: Matcher defines the conditions under which the
+                          web component should be loaded.
+                        maxProperties: 1
+                        properties:
+                          context-name:
+                            description: This is a list of context names in which
+                              this element is intended to be shown.
+                            type: string
+                          path:
+                            description: The list of paths in which this element is
+                              intended to be shown.
+                            example: /my-menu-item
+                            type: string
+                          role:
+                            description: The list of roles for which this element
+                              is intended to be shown.
+                            example: admin
+                            type: string
+                        type: object
+                      type: array
+                    noneOf:
+                      description: If none of the matchers in this list are matched,
+                        the web component will be loaded.
+                      items:
+                        description: Matcher defines the conditions under which the
+                          web component should be loaded.
+                        maxProperties: 1
+                        properties:
+                          context-name:
+                            description: This is a list of context names in which
+                              this element is intended to be shown.
+                            type: string
+                          path:
+                            description: The list of paths in which this element is
+                              intended to be shown.
+                            example: /my-menu-item
+                            type: string
+                          role:
+                            description: The list of roles for which this element
+                              is intended to be shown.
+                            example: admin
+                            type: string
+                        type: object
+                      type: array
+                  type: object
+                type: array
+              element:
+                description: The HTML element tag name to be used when the matcher
+                  is matched.
+                example: my-menu-item
+                type: string
+              microFrontend:
+                description: Reference to a microfrontend from which the webcomponent
+                  would be served.
+                type: string
+              priority:
+                default: 0
+                description: Priority defines the priority of the webcomponent. Used
+                  for ordering the webcomponent within the shell. The higher the number,
+                  the higher the priority. The default priority is 0.
+                format: int32
+                type: integer
+              style:
+                description: Styles defines the styles that should be applied to the
+                  webcomponent.
+                items:
+                  description: Style defines the styles that should be applied to
+                    the webcomponent.
+                  properties:
+                    name:
+                      description: The name of the style.
+                      type: string
+                    value:
+                      description: The value of the style.
+                      type: string
+                  required:
+                  - name
+                  - value
+                  type: object
+                type: array
+            required:
+            - displayRules
+            - element
+            type: object
+          status:
+            description: WebComponentStatus defines the observed state of WebComponent
+            properties:
+              conditions:
+                description: Conditions represent the latest available observations
+                  of the WebComponent's state
+                items:
+                  description: Condition contains details for one aspect of the current
+                    state of this API Resource.
+                  properties:
+                    lastTransitionTime:
+                      description: |-
+                        lastTransitionTime is the last time the condition transitioned from one status to another.
+                        This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        message is a human readable message indicating details about the transition.
+                        This may be an empty string.
+                      maxLength: 32768
+                      type: string
+                    observedGeneration:
+                      description: |-
+                        observedGeneration represents the .metadata.generation that the condition was set based upon.
+                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                        with respect to the current state of the instance.
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      description: |-
+                        reason contains a programmatic identifier indicating the reason for the condition's last transition.
+                        Producers of specific condition types may define expected values and meanings for this field,
+                        and whether the values are considered a guaranteed API.
+                        The value should be a CamelCase string.
+                        This field may not be empty.
+                      maxLength: 1024
+                      minLength: 1
+                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                      type: string
+                    status:
+                      description: status of the condition, one of True, False, Unknown.
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - type
+                x-kubernetes-list-type: map
+              microFrontendRef:
+                description: MicroFrontendRef indicates the resolved MicroFrontend
+                  reference
+                properties:
+                  found:
+                    description: Found indicates if the referenced object was found
+                    type: boolean
+                  name:
+                    description: Name of the referenced object
+                    type: string
+                  namespace:
+                    description: Namespace of the referenced object
+                    type: string
+                required:
+                - found
+                - name
+                - namespace
+                type: object
+              observedGeneration:
+                description: ObservedGeneration reflects the generation of the most
+                  recently observed WebComponent
+                format: int64
+                type: integer
+              phase:
+                description: |-
+                  Phase represents the current lifecycle phase of the WebComponent
+                  Possible values: Pending, Ready, Failed, MicroFrontendNotFound
+                enum:
+                - Pending
+                - Ready
+                - Failed
+                - MicroFrontendNotFound
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/instance: polyfea
+    app.kubernetes.io/name: polyfea-controller
+    app.kubernetes.io/version: v0.5.8
+  name: polyfea-controller
+  namespace: polyfea
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app.kubernetes.io/instance: polyfea
+    app.kubernetes.io/name: polyfea-controller
+    app.kubernetes.io/version: v0.5.8
+  name: polyfea-controller-leader-election
+  namespace: polyfea
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/instance: polyfea
+    app.kubernetes.io/name: polyfea-controller
+    app.kubernetes.io/version: v0.5.8
+  name: polyfea-controller-manager
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - services
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - polyfea.github.io
+  resources:
+  - microfrontendclasses
+  - microfrontends
+  - webcomponents
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - polyfea.github.io
+  resources:
+  - microfrontendclasses/finalizers
+  - microfrontends/finalizers
+  - webcomponents/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - polyfea.github.io
+  resources:
+  - microfrontendclasses/status
+  - microfrontends/status
+  - webcomponents/status
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/instance: polyfea
+    app.kubernetes.io/name: polyfea-controller
+    app.kubernetes.io/version: v0.5.8
+  name: polyfea-controller-leader-election
+  namespace: polyfea
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: polyfea-controller-leader-election
+subjects:
+- kind: ServiceAccount
+  name: polyfea-controller
+  namespace: polyfea
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/instance: polyfea
+    app.kubernetes.io/name: polyfea-controller
+    app.kubernetes.io/version: v0.5.8
+  name: polyfea-controller-manager
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: polyfea-controller-manager
+subjects:
+- kind: ServiceAccount
+  name: polyfea-controller
+  namespace: polyfea
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/instance: polyfea
+    app.kubernetes.io/name: polyfea-controller
+    app.kubernetes.io/version: v0.5.8
+  name: polyfea-controller
+  namespace: polyfea
+spec:
+  ports:
+  - name: webserver
+    nodePort: 30331
+    port: 80
+    protocol: TCP
+    targetPort: http
+  selector:
+    app.kubernetes.io/instance: polyfea
+    app.kubernetes.io/name: polyfea-controller
+  type: NodePort
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    polyfea.github.io/feature-set: polyfea-md-shell
+  name: polyfea-md-shell
+  namespace: polyfea
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: http
+  selector:
+    pod: polyfea-md-shell
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/instance: polyfea
+    app.kubernetes.io/name: polyfea-controller
+    app.kubernetes.io/version: v0.5.8
+  name: polyfea-controller
+  namespace: polyfea
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: polyfea
+      app.kubernetes.io/name: polyfea-controller
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: polyfea-controller
+      labels:
+        app.kubernetes.io/instance: polyfea
+        app.kubernetes.io/name: polyfea-controller
+    spec:
+      containers:
+      - args:
+        - --leader-elect
+        - --health-probe-bind-address=:8081
+        command:
+        - /manager
+        env:
+        - name: POLYFEA_WEB_SERVER_PORT
+          value: "8082"
+        image: ghcr.io/polyfea/polyfea-controller:v0.5.8
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        name: polyfea-controller
+        ports:
+        - containerPort: 8082
+          name: http
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 500m
+            memory: 128Mi
+          requests:
+            cpu: 10m
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: polyfea-controller
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/instance: polyfea
+    app.kubernetes.io/name: polyfea-md-shell-samples
+    app.kubernetes.io/version: 2.0.4
+    polyfea.github.io/feature-set: polyfea-md-shell
+  name: polyfea-md-shell
+  namespace: polyfea
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: polyfea
+      app.kubernetes.io/name: polyfea-md-shell-samples
+      pod: polyfea-md-shell
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: polyfea
+        app.kubernetes.io/name: polyfea-md-shell-samples
+        pod: polyfea-md-shell
+    spec:
+      containers:
+      - image: ghcr.io/polyfea/md-shell:2.0.4
+        imagePullPolicy: IfNotPresent
+        name: polyfea-md-shell
+        ports:
+        - containerPort: 7105
+          name: http
+        resources:
+          limits:
+            cpu: "0.2"
+            memory: 320M
+          requests:
+            cpu: "0.01"
+            memory: 16M
+---
+apiVersion: polyfea.github.io/v1alpha1
+kind: MicroFrontend
+metadata:
+  labels:
+    app.kubernetes.io/instance: polyfea
+    app.kubernetes.io/name: polyfea-md-shell-samples
+    app.kubernetes.io/version: "1.0"
+    polyfea.github.io/feature-set: polyfea-md-shell
+  name: polyfea-md-shell
+  namespace: polyfea
+spec:
+  frontendClass: md-shell
+  importMap:
+    imports:
+      '@lit/context': /imports/@lit/context/context.js
+      '@lit/context/': /imports/@lit/context/
+      '@lit/localize': /imports/@lit/localize/lit-localize.js
+      '@lit/localize/': /imports/@lit/localize/
+      '@lit/reactive-element': /imports/@lit/reactive-element/reactive-element.js
+      '@lit/reactive-element/': /imports/@lit/reactive-element/
+      '@material/web': /imports/@material/web/common.js
+      '@material/web/': /imports/@material/web/
+      lit: /imports/lit/index.js
+      lit-element/: /imports/lit-element/
+      lit-element/lit-element.js: /imports/lit-element/lit-element.js
+      lit-html: /imports/lit-html/lit-html.js
+      lit-html/: /imports/lit-html/
+      lit/: /imports/lit/
+      tslib: /imports/tslib/tslib.es6.mjs
+  modulePath: elements.js
+  service:
+    name: polyfea-md-shell
+  staticPaths:
+  - kind: stylesheet
+    path: assets/fonts.css
+---
+apiVersion: polyfea.github.io/v1alpha1
+kind: MicroFrontendClass
+metadata:
+  labels:
+    app.kubernetes.io/instance: polyfea
+    app.kubernetes.io/name: polyfea-md-shell-samples
+    app.kubernetes.io/version: 2.0.4
+    polyfea.github.io/feature-set: polyfea-md-shell
+  name: md-shell
+  namespace: polyfea
+spec:
+  baseUri: /fea
+  cspHeader: default-src 'self'; font-src 'self'; script-src 'strict-dynamic' 'nonce-{NONCE_VALUE}';
+    worker-src 'self'; manifest-src 'self'; style-src 'self' 'unsafe-inline'; style-src-attr
+    'self' 'unsafe-inline'; img-src *; connect-src *;
+  extraMetaTags:
+  - content: width=device-width, initial-scale=1
+    name: viewport
+  namespacePolicy:
+    from: All
+  progressiveWebApp:
+    cacheOptions:
+      cacheRoutes:
+      - pattern: .*.jpg
+      preCache:
+      - url: polyfea/boot.mjs
+    webAppManifest:
+      display: standalone
+      icons:
+      - sizes: 128x128
+        src: https://avatars.githubusercontent.com/u/154217229?s=400&u=ae64608e9686a2405680676a15800dc2b6df32bb&v=4
+        type: image/png
+      name: Polyfea MD Shell
+      start_url: /fea
+  title: Polyfea Microfrontend MD Shell
+---
+apiVersion: polyfea.github.io/v1alpha1
+kind: WebComponent
+metadata:
+  labels:
+    app.kubernetes.io/instance: polyfea
+    app.kubernetes.io/name: polyfea-md-shell-samples
+    app.kubernetes.io/version: 2.0.4
+    polyfea.github.io/feature-set: polyfea-md-shell
+  name: applications
+  namespace: polyfea
+spec:
+  attributes:
+  - name: applications-context
+    value: applications
+  displayRules:
+  - allOf:
+    - context-name: main-content
+    - path: ^(\.?/)?$
+  element: polyfea-md-apps
+  microFrontend: polyfea-md-shell
+---
+apiVersion: polyfea.github.io/v1alpha1
+kind: WebComponent
+metadata:
+  labels:
+    app.kubernetes.io/instance: polyfea
+    app.kubernetes.io/name: polyfea-md-shell-samples
+    app.kubernetes.io/version: 2.0.4
+    polyfea.github.io/feature-set: polyfea-md-shell
+  name: home-fea
+  namespace: polyfea
+spec:
+  attributes:
+  - name: headline
+    value: Home page
+  - name: short-headline
+    value: Home
+  - name: supporting-text
+    value: Go to landing page of the Polyfea Shell Application.
+  - name: material-icon
+    value: home
+  - name: href
+    value: ./
+  displayRules:
+  - anyOf:
+    - context-name: rail-content
+    - context-name: drawer-content
+    - context-name: navigation-content
+  element: polyfea-md-app
+  microFrontend: polyfea-md-shell
+  priority: 100
+---
+apiVersion: polyfea.github.io/v1alpha1
+kind: WebComponent
+metadata:
+  labels:
+    app.kubernetes.io/instance: polyfea
+    app.kubernetes.io/name: polyfea-md-shell-samples
+    app.kubernetes.io/version: 2.0.4
+    polyfea.github.io/feature-set: polyfea-md-shell
+  name: polyfea-md-shell
+  namespace: polyfea
+spec:
+  attributes:
+  - name: application-headline
+    value: Polyfea Shell Application
+  - name: locale-menu
+    value: "true"
+  - name: locales
+    value: '"en", "sk", "cz", "de", "es", "fr"]'
+  - name: theme-menu
+    value: "true"
+  - name: absolute-position
+    value: "true"
+  displayRules:
+  - anyOf:
+    - context-name: shell
+  element: polyfea-md-shell
+  microFrontend: polyfea-md-shell
