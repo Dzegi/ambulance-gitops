@@ -7,7 +7,7 @@ spec:
   element: <pfx>-ambulance-wl-app
   attributes:
     - name: base-path
-      value: /tj-ambulance-wl/
+      value: ./tj-ambulance-wl/
   displayRules:
     - allOf:
       - context-name: main-content
