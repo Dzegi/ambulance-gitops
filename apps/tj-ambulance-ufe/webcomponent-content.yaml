@@ -6,6 +6,10 @@ spec:
   microFrontend: tj-ambulance-ufe
   element: <pfx>-ambulance-wl-app
   attributes:
+    - name: api-base
+      value: http://localhost:5001/api # v mojom pripade 5001
+    - name: ambulance-id
+      value: bobulova
     - name: base-path
       value: ./tj-ambulance-wl/
   displayRules:
